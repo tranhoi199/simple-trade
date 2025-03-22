@@ -30,6 +30,7 @@ dependencies {
 	annotationProcessor("org.projectlombok:lombok:1.18.34")
 	// https://mvnrepository.com/artifact/org.mockito/mockito-core
 	testImplementation("org.mockito:mockito-core:5.15.2")
+	testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
 tasks.withType<Test> {
