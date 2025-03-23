@@ -1,6 +1,7 @@
 package vn.com.test.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -11,6 +12,7 @@ import vn.com.test.entity.PriceData;
 import vn.com.test.repository.PriceDataRepository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -29,12 +31,18 @@ public class PriceAggregationService {
 
     private static List<String> SYMBOLS_SUPPORT = Arrays.asList("ETHUSDT", "BTCUSDT");
 
-    private static String URL = "https://api.binance.com/api/v3/ticker/bookTicker";
+    private static String BINANCE_URL = "https://api.binance.com/api/v3/ticker/bookTicker";
+    private static String HUIBI_URL = "https://api.huobi.pro/market/tickers";
 
     @Scheduled(fixedRate = 10000L)
     public void fetchAndStorePrice() {
+        fetchBinancePrices(BINANCE_URL);
+        fetchHuobiPrices();
+    }
+
+    private void fetchBinancePrices(String url) {
         try {
-            var listTickerPrice = getListOfTicker();
+            var listTickerPrice = getListOfTicker(url);
 
             if (listTickerPrice == null) {
                 return;
@@ -48,7 +56,29 @@ public class PriceAggregationService {
                 var bidPrice = ticker.getBidPrice();
                 var askPrice = ticker.getAskPrice();
 
+                compareAndUpdateLatestPrice(symbol, bidPrice, askPrice);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
+    private void fetchHuobiPrices() {
+        try {
+            var listTickerPrice = getHuobiTickers(HUIBI_URL);
+
+            if (listTickerPrice == null) {
+                return;
+            }
+
+            for (BinanceTicker ticker : listTickerPrice) {
+                var symbol = ticker.getSymbol();
+                if (!SYMBOLS_SUPPORT.contains(symbol)) {
+                    continue;
+                }
+                var bidPrice = ticker.getBidPrice();
+                var askPrice = ticker.getAskPrice();
+//                System.out.println(String.format("insert symbol %s with bid price %s ask price %s", symbol, bidPrice, askPrice));
                 compareAndUpdateLatestPrice(symbol, bidPrice, askPrice);
             }
         } catch (Exception e) {
@@ -60,10 +90,24 @@ public class PriceAggregationService {
         return priceDataRepository.findBySymbol(symbol);
     }
 
-    private List<BinanceTicker> getListOfTicker() throws JsonProcessingException {
-        var responseString = restTemplate.getForObject(URL, String.class);
+    private List<BinanceTicker> getListOfTicker(String url) throws JsonProcessingException {
+        var responseString = restTemplate.getForObject(url, String.class);
         var binanceTickerList = objectMapper.readValue(responseString, BinanceTicker[].class);
         return Arrays.asList(binanceTickerList);
+    }
+
+    private List<BinanceTicker> getHuobiTickers(String url) throws JsonProcessingException {
+        var responseString = restTemplate.getForObject(url, JsonNode.class);
+        var data = responseString.get("data");
+        var tickers = data;
+        var result = new ArrayList<BinanceTicker>();
+        for (JsonNode jsonNode : tickers) {
+            var symbol = jsonNode.get("symbol").asText().toUpperCase();
+            var bidPrice = jsonNode.get("bid").asDouble();
+            var askPrice = jsonNode.get("ask").asDouble();
+            result.add(new BinanceTicker(symbol, bidPrice, askPrice));
+        }
+        return result;
     }
 
     private boolean compareAndUpdateLatestPrice(String symbol, double bidPrice, double askPrice) {
@@ -79,7 +123,10 @@ public class PriceAggregationService {
         var databaseBestPrice = databaseBestPriceOpt.get();
 
         if (bidPrice == databaseBestPrice.getBidPrice() && askPrice == databaseBestPrice.getAskPrice()) {
-//            System.out.println("price does not change");
+            return false;
+        }
+
+        if (bidPrice >= databaseBestPrice.getBidPrice() && askPrice <= databaseBestPrice.getAskPrice()) {
             return false;
         }
 
