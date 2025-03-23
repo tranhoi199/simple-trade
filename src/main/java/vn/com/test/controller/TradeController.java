@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.com.test.dto.TradeRequest;
+import vn.com.test.entity.ApiResponse;
 import vn.com.test.entity.Transaction;
 import vn.com.test.entity.Wallet;
 import vn.com.test.service.TradeService;
@@ -17,12 +18,12 @@ public class TradeController {
     private final TradeService tradeService;
 
     @PostMapping("/api/trade/execute")
-    public ResponseEntity<Transaction> executeTrade(@RequestBody TradeRequest tradeRequest) {
+    public ResponseEntity<ApiResponse<Transaction>> executeTrade(@RequestBody TradeRequest tradeRequest) {
         try {
             var transaction = tradeService.executeTrade(tradeRequest);
-            return ResponseEntity.ok(transaction);
+            return ResponseEntity.ok(ApiResponse.success(transaction));
         } catch (Exception ex) {
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.badRequest().body(ApiResponse.error(-1, ex.getMessage()));
         }
     }
 
@@ -41,7 +42,7 @@ public class TradeController {
         }
     }
 
-    @GetMapping("/transaction/{userId}")
+    @GetMapping("/api/trade/transaction/{userId}")
     public ResponseEntity<List<Transaction>> getTransactionList(@PathVariable Long userId) {
         var transactions = tradeService.getTransactionList(userId);
         return ResponseEntity.ok(transactions);

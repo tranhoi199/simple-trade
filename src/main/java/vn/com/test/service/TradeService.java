@@ -32,8 +32,9 @@ public class TradeService {
     private static List<String> SYMBOLS_SUPPORT = Arrays.asList("ETHUSDT", "BTCUSDT");
     private static String BUY_TYPE = "BUY";
     private static String SELL_TYPE = "SELL";
+    private static List<String> TYPES = Arrays.asList(BUY_TYPE, SELL_TYPE);
 
-//    @Transactional
+    @Transactional
     public Transaction executeTrade(TradeRequest request) throws Exception {
         var symbol = request.getSymbol();
 
@@ -57,7 +58,7 @@ public class TradeService {
         var wallet = walletOptional.get();
         
         var typeTrade = request.getType();
-        if (!Objects.equals(typeTrade, BUY_TYPE) || !Objects.equals(typeTrade, SELL_TYPE)) {
+        if (!TYPES.contains(typeTrade)) {
             throw new Exception("Type is not support");
         }
 

@@ -33,6 +33,8 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-aop
 	implementation("org.springframework.boot:spring-boot-starter-aop:3.4.2")
+	// https://mvnrepository.com/artifact/com.fasterxml.jackson.datatype/jackson-datatype-jsr310
+	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.2")
 }
 
 tasks.withType<Test> {

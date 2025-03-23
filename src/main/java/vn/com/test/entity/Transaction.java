@@ -1,5 +1,6 @@
 package vn.com.test.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,5 +27,6 @@ public class Transaction {
     private BigDecimal quantity;
     private BigDecimal price;
     private BigDecimal total;
+    @JsonIgnore
     private LocalDateTime createdAt;
 }
