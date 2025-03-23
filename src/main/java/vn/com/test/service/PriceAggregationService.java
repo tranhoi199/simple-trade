@@ -48,16 +48,7 @@ public class PriceAggregationService {
                 return;
             }
 
-            for (BinanceTicker ticker : listTickerPrice) {
-                var symbol = ticker.getSymbol();
-                if (!SYMBOLS_SUPPORT.contains(symbol)) {
-                    continue;
-                }
-                var bidPrice = ticker.getBidPrice();
-                var askPrice = ticker.getAskPrice();
-
-                compareAndUpdateLatestPrice(symbol, bidPrice, askPrice);
-            }
+            processTickerPrice(listTickerPrice);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -71,18 +62,21 @@ public class PriceAggregationService {
                 return;
             }
 
-            for (BinanceTicker ticker : listTickerPrice) {
-                var symbol = ticker.getSymbol();
-                if (!SYMBOLS_SUPPORT.contains(symbol)) {
-                    continue;
-                }
-                var bidPrice = ticker.getBidPrice();
-                var askPrice = ticker.getAskPrice();
-//                System.out.println(String.format("insert symbol %s with bid price %s ask price %s", symbol, bidPrice, askPrice));
-                compareAndUpdateLatestPrice(symbol, bidPrice, askPrice);
-            }
+            processTickerPrice(listTickerPrice);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void processTickerPrice(List<BinanceTicker> listTickerPrice) {
+        for (BinanceTicker ticker : listTickerPrice) {
+            var symbol = ticker.getSymbol();
+            if (!SYMBOLS_SUPPORT.contains(symbol)) {
+                continue;
+            }
+            var bidPrice = ticker.getBidPrice();
+            var askPrice = ticker.getAskPrice();
+            compareAndUpdateLatestPrice(symbol, bidPrice, askPrice);
         }
     }
 
