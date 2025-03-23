@@ -10,12 +10,11 @@ import java.math.BigDecimal;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "wallet")
+@Table(name = "wallets")
 @Data
 public class Wallet {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long userId;
 
    private BigDecimal usdtBalance;
    private BigDecimal btcBalance;

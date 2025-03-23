@@ -27,6 +27,8 @@ public class PriceAggregationService {
     @Autowired
     private ObjectMapper objectMapper = new ObjectMapper();
 
+    private static List<String> SYMBOLS_SUPPORT = Arrays.asList("ETHUSDT", "BTCUSDT");
+
     private static String URL = "https://api.binance.com/api/v3/ticker/bookTicker";
 
     @Scheduled(fixedRate = 10000L)
@@ -39,9 +41,13 @@ public class PriceAggregationService {
             }
 
             for (BinanceTicker ticker : listTickerPrice) {
+                var symbol = ticker.getSymbol();
+                if (!SYMBOLS_SUPPORT.contains(symbol)) {
+                    continue;
+                }
                 var bidPrice = ticker.getBidPrice();
                 var askPrice = ticker.getAskPrice();
-                var symbol = ticker.getSymbol();
+
 
                 compareAndUpdateLatestPrice(symbol, bidPrice, askPrice);
             }

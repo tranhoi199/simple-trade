@@ -33,7 +33,7 @@ public class TradeService {
     private static String BUY_TYPE = "BUY";
     private static String SELL_TYPE = "SELL";
 
-    @Transactional
+//    @Transactional
     public Transaction executeTrade(TradeRequest request) throws Exception {
         var symbol = request.getSymbol();
 
@@ -143,4 +143,18 @@ public class TradeService {
     private Wallet subtractBalance(Wallet wallet, BigDecimal amount, String symbol) {
         return increaseBalance(wallet, amount.negate(), symbol);
     }
+
+    public Wallet getWalletBalance(Long userId) {
+        var walletOptional = walletRepository.findByUserId(userId);
+        if (walletOptional.isEmpty()) {
+            return null;
+        }
+
+        return walletOptional.get();
+    }
+
+    public List<Transaction> getTransactionList(Long userId) {
+        return transactionRepository.findByUserId(userId);
+    }
+
 }
